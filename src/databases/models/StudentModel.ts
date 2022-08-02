@@ -23,6 +23,7 @@ export class StudentModel extends Model {
             studentRelationTeacher.student.set(this)
             studentRelationTeacher.teacher.set(teacher)
         })
+
         return newStudentTeacher
     }
 }

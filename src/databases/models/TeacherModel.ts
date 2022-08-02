@@ -20,7 +20,7 @@ export class TeacherModel extends Model {
     .get<StudentModel>("students")
     .query(Q.on("student_teachers", "teacher_id", this.id));
 
-  @writer async addTeacher(student: StudentModel) {
+  @writer async addStudent(student: StudentModel) {
     const newStudentTeacher = await this.collections
       .get<StudentTeacherModel>("student_teachers")
       .create((studentRelationTeacher) => {

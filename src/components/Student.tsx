@@ -19,7 +19,6 @@ export function Student({student, onEdit, onRemove}: Props) {
     // console.log(student)
     async function getTeachers() {
       student?.teachers.fetch().then(res => setTeachers(res))
-
     }
 
     getTeachers()
@@ -33,9 +32,9 @@ export function Student({student, onEdit, onRemove}: Props) {
           <Text color="white" fontSize="lg">Nome: {student?.name}</Text>
           <Text color="white" fontSize="lg" mb={2}>Matrícula: {student?.registration}</Text>
 
-          {teachers.length > 0 && (
+          {/* {teachers.length > 0 && ( */}
             <Heading color="white" fontSize="lg">Professores:</Heading>
-          )}
+          {/* )} */}
           {
               teachers.map(teacher => (
                 <Text key={teacher.id} color="gray.200" fontSize="md">Nome: {teacher?.name}</Text>
