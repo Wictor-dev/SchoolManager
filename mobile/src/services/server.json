@@ -1,0 +1,24 @@
+{
+    "students": [
+        {
+            "name": "John",
+            "registration": "1242323"
+        },
+        {
+            "name": "Marus",
+            "registration": "4329020"
+        }
+    ],
+    "teachers": [
+        {
+            "name": "Kleber",
+            "age": 35,
+            "payment": 2450
+        },
+        {
+            "name": "João",
+            "age": 40,
+            "payment": 1000
+        }
+    ]
+}
