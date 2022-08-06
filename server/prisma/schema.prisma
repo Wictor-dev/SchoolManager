@@ -11,22 +11,35 @@ datasource db {
 }
 
 model Student {
-  id           String   @id @default(uuid())
+  id           String               @id @default(uuid())
   name         String
   registration String
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now()) @updatedAt
+  created_at   DateTime             @default(now())
+  updated_at   DateTime             @default(now()) @updatedAt
+  teachers     StudentsOnTeachers[]
 
   @@map("students")
 }
 
 model Teacher {
-  id         String   @id @default(uuid())
+  id         String               @id @default(uuid())
   name       String
   age        String
   payment    String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  created_at DateTime             @default(now())
+  updated_at DateTime             @default(now()) @updatedAt
+  students   StudentsOnTeachers[]
 
   @@map("teachers")
+}
+
+model StudentsOnTeachers {
+  student             Student  @relation(fields: [student_id], references: [id])
+  student_id          String
+  teacher             Teacher  @relation(fields: [teacher_id], references: [id])
+  teacher_id          String
+  assigned_at         DateTime @default(now())
+  assigned_updated_at DateTime @default(now()) @updatedAt
+
+  @@id([student_id, teacher_id])
 }

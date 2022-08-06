@@ -100,20 +100,21 @@ export function Home() {
             pushChanges: async ({ changes }) => {
                 const students = changes.students
                 const teachers = changes.teachers
-                if (activyItems === "students") {
-                    try {
-                        await api.post('/students/sync', students)
-                    } catch (error) {
-                        console.log(error)
-                    }
-                } else {
-                    try {
-                        console.log(teachers)
-                        await api.post('/teachers/sync', teachers)
-                    } catch (error) {
-                        console.log(error)
-                    }
-                }
+                console.log(changes)
+                // if (activyItems === "students") {
+                //     try {
+                //         await api.post('/students/sync', students)
+                //     } catch (error) {
+                //         console.log(error)
+                //     }
+                // } else {
+                //     try {
+                //         console.log(teachers)
+                //         await api.post('/teachers/sync', teachers)
+                //     } catch (error) {
+                //         console.log(error)
+                //     }
+                // }
 
             }
         }).finally(() => {
