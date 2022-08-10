@@ -9,7 +9,9 @@ export class SyncCreateStudentAssignTeacherController {
 
       const syncCreateStudentAssignTeacherUseCase =
         new SyncCreateStudentAssignTeacherUseCase();
+
       try {
+
         const studentTeacher =
           await syncCreateStudentAssignTeacherUseCase.execute({
             id,
@@ -18,7 +20,9 @@ export class SyncCreateStudentAssignTeacherController {
             lastPulledVersion: Number(lastPulledVersion),
           });
         return res.status(201).json(studentTeacher);
+
       } catch (error: any) {
+
         return res
           .status(error.statusCode ? error.statusCode : 400)
           .json(error.message);

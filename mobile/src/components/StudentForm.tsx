@@ -1,5 +1,5 @@
 import { Select, VStack } from "native-base";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { database } from "../databases";
 import { StudentModel } from "../databases/models/StudentModel";
@@ -21,24 +21,19 @@ export function StudentForm({ closeModal, reload }: Props) {
     const [student, setStudent] = useState<StudentModel>({} as StudentModel)
 
     async function createStudentTeacher(teacher: TeacherModel) {
-        if (teacher?.name) {
-            await student.addTeacher(teacher).catch(err => console.log(err))
-            closeModal()
-            Alert.alert('Professor adicionado com sucesso!')
-            reload()
-        } else {
-            Alert.alert('Não foi possível associar um professor')
-        }
-
+        await student.addTeacher(teacher).catch(err => console.log(err))
+        reload()
+        closeModal()
+        Alert.alert('Professor adicionado com sucesso!')
     }
 
     async function getTeacher() {
         const teacherFiltered = teachers.filter(teacher => teacher.id === teacherId)
 
-        if (teacherFiltered.length > 0) {
+        if (teacherFiltered.length > 0 && teacherFiltered[0]?.name) {
             createStudentTeacher(teacherFiltered[0])
         } else {
-            Alert.alert('Não foi possível adicionar o professor')
+            Alert.alert('Não foi possível associar o professor')
         }
     }
 
@@ -63,6 +58,9 @@ export function StudentForm({ closeModal, reload }: Props) {
         Alert.alert('Estudante criado')
     }
 
+    useEffect(() => {
+        getTeachers()
+    }, [])
     return (
         <VStack>
             {
@@ -78,10 +76,9 @@ export function StudentForm({ closeModal, reload }: Props) {
                                 keyboardType="number-pad"
                             />
                             <Button mt={4} title="Continuar" onPress={() => {
-                                setStudentName('')
-                                setStudentRegistration('')
+                                // setStudentName('')
+                                // setStudentRegistration('')
                                 saveStudent(studentName, studentRegistration)
-                                getTeachers()
                                 setShowTeachers(true)
                             }} />
                         </>
@@ -102,7 +99,7 @@ export function StudentForm({ closeModal, reload }: Props) {
                                 ))}
                             </Select>
 
-                            <Button title="Criar" mt={8} onPress={() => getTeacher()} />
+                            <Button title="Criar" mt={8} onPress={getTeacher} />
                         </>
                     )
             }

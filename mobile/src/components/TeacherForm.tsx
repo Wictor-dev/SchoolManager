@@ -1,17 +1,35 @@
 import { VStack } from 'native-base';
 import React, { useState } from 'react';
+import { Alert } from 'react-native';
+import { database } from '../databases';
+import { TeacherModel } from '../databases/models/TeacherModel';
 import { Button } from './Button';
 import { Input } from './Input';
 
 interface Props {
-    saveTeacher: (name: string, age: string, payment: string) => void;
     closeModal: () => void;
+    reload: () => void;
 }
 
-export function TeacherForm({saveTeacher, closeModal}: Props) {
+export function TeacherForm({ closeModal, reload }: Props) {
     const [teacherName, setTeacherName] = useState('')
     const [teacherAge, setTeacherAge] = useState('')
     const [teacherPayment, setTeacherPayment] = useState('')
+
+    async function saveTeacher(name: string, age: string, payment: string) {
+        await database.write(async () => {
+            await database.get<TeacherModel>('teachers')
+                .create(data => {
+                    data.name = name,
+                        data.age = age,
+                        data.payment = payment
+                })
+        })
+
+        reload()
+        Alert.alert('Professor criado')
+    }
+
     return (
         <VStack>
             <Input placeholder='Nome' mb={4} value={teacherName} onChangeText={setTeacherName} />

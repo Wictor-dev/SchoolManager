@@ -46,7 +46,7 @@ export function Home() {
             await student.destroyPermanently();
         })
 
-        fetchData()
+        fetchStudents()
         Alert.alert("Estudante excluído")
     }
 
@@ -55,22 +55,8 @@ export function Home() {
             await teacher.destroyPermanently();
         })
 
-        fetchData()
+        fetchTeachers()
         Alert.alert("Professor excluído")
-    }
-
-    async function saveTeacher(name: string, age: string, payment: string) {
-        await database.write(async () => {
-            await database.get<TeacherModel>('teachers')
-                .create(data => {
-                    data.name = name,
-                        data.age = age,
-                        data.payment = payment
-                })
-        })
-
-        fetchData()
-        Alert.alert('Professor criado')
     }
 
     async function offlineSynchronize() {
@@ -126,6 +112,7 @@ export function Home() {
         }
     }
     async function fetchStudents() {
+        setIsLoading(true)
         try {
             const studentsCollection = database.get<StudentModel>('students')
             const studentsResponse = await studentsCollection.query().fetch()
@@ -139,6 +126,7 @@ export function Home() {
         }
     }
     async function fetchTeachers() {
+        setIsLoading(true)
         try {
             const teachersCollection = database.get<TeacherModel>('teachers')
             const teachersResponse = await teachersCollection.query().fetch()
@@ -152,21 +140,15 @@ export function Home() {
         }
     }
 
-    // useEffect(() => {
-    //     if (students.length > 0) {
-    //         offlineSynchronize()
-    //     }
-    // }, [students.length])
-
     useEffect(() => {
         fetchData()
     }, [activyItems])
 
-    // useEffect(() => {
-    //     if (netInfo.isConnected === true) {
-    //         offlineSynchronize();
-    //     }
-    // }, [netInfo.isConnected])
+    useEffect(() => {
+        if (netInfo.isConnected === true) {
+            offlineSynchronize();
+        }
+    }, [netInfo.isConnected])
 
     return (
         <VStack flex={1} bg="gray.800" paddingX={8} paddingTop={getStatusBarHeight() + 16}>
@@ -284,13 +266,13 @@ export function Home() {
                         ? (
                             <StudentForm
                                 closeModal={handleShowModal}
-                                reload={fetchData}
+                                reload={fetchStudents}
                             />
                         )
                         : (
                             <TeacherForm
                                 closeModal={handleShowModal}
-                                saveTeacher={saveTeacher}
+                                reload={fetchTeachers}
                             />
                         )
                 }
