@@ -78,17 +78,15 @@ export function Home() {
         await synchronize({
             database,
             pullChanges: async ({ lastPulledAt }) => {
-                console.log({lastPulledAt, date: new Date(Number(lastPulledAt))})
                 const response = await api.get(`/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
                 const { changes, latestVersion } = response.data
-                console.log({latestVersion, date: new Date(latestVersion)})
                 return { changes, timestamp: latestVersion }
             },
             pushChanges: async ({ changes, lastPulledAt }) => {
                 const students = changes.students
                 const teachers = changes.teachers
                 const studentTeachers = changes["student_teachers"]
-                console.log(studentTeachers)
+                
                 if (activyItems === "students") {
                     try {
                         await api.post(`/students/sync?lastPulledVersion=${lastPulledAt || 0}`, students)

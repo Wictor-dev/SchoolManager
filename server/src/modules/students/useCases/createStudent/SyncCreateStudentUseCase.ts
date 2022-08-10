@@ -32,7 +32,7 @@ export class SyncCreateStudentUseCase {
         updated_at: new Date(lastPulledVersion)
       },
     });
-    console.log({student})
+    
     return student
   }
 }

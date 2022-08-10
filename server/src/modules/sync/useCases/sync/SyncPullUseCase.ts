@@ -45,14 +45,6 @@ export class SyncPullUseCase {
       Student_Teachers[]
     >`SELECT * FROM student_teachers WHERE created_at > ${lastPulledVersion}`;
 
-    console.log({
-      students: {
-        date,
-        created: createdStudents[0],
-        updated: updatedStudents,
-        deleted: [],
-      },
-    });
     return {
       students: {
         created: createdStudents,

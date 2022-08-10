@@ -38,17 +38,14 @@ export class SyncCreateStudentAssignTeacherUseCase {
     })
 
     if (!student) {
-      console.log("Student not found!")
       throw new AppError("Student not found!");
     }
 
     if (!teacher) {
-      console.log("Teacher not found!")
       throw new AppError("Teacher not found!");
     }
 
     if (relation.length > 0){
-      console.log("Relation already exists!");
       throw new AppError("Relation already exists!");
     }
 
