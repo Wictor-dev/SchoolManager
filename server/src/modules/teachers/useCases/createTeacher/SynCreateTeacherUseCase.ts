@@ -4,13 +4,21 @@ import { CreateTeacherDTO } from "../../dtos/CreateTeacherDTO";
 
 const prisma = new PrismaClient();
 
+interface Data {
+  id: string;
+  name: string;
+  age: string;
+  payment: string;
+  lastPulledVersion: number;
+}
 export class SyncCreateTeacherUseCase {
   async execute({
     id,
     name,
     age,
     payment,
-  }: CreateTeacherDTO): Promise<Teacher> {
+    lastPulledVersion,
+  }: Data): Promise<Teacher> {
     const teacherFinded = await prisma.teacher.findUnique({ where: { id } });
 
     if (!!teacherFinded) {
@@ -23,6 +31,8 @@ export class SyncCreateTeacherUseCase {
         name,
         age,
         payment,
+        created_at: new Date(lastPulledVersion),
+        updated_at: new Date(lastPulledVersion),
       },
     });
 
