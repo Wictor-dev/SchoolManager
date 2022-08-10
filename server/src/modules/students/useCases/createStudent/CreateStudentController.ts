@@ -9,6 +9,10 @@ export class CreateStudentController {
 
         const result = await createStudentUseCase.execute({name, registration})
 
-        return res.status(201).json(result)
+        if (Object.keys(result).length > 0){
+            return res.status(201).json(result)
+        } else {
+            return res.status(500).json("Error! Student can't be created!")
+        }
     }
 }

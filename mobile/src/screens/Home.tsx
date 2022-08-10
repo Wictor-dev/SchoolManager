@@ -28,7 +28,7 @@ export function Home() {
     const [students, setStudents] = useState<StudentModel[]>([])
     const [showModal, setShowModal] = useState(false)
     const [activyItems, setActivyItems] = useState<'students' | 'teachers'>('students')
-
+    const [pulledVersion, setPulledVersion] = useState<number | null>(0)
     async function resetDb() {
         await database.write(async () => {
             await database.unsafeResetDatabase()
@@ -74,53 +74,98 @@ export function Home() {
         Alert.alert('Professor criado')
     }
 
+    async function synchronizeRelation() {
+        setIsLoading(true)
+        await synchronize({
+            database,
+            pullChanges: async ({ lastPulledAt }) => {
+                // console.log("Fazendo pull ##########")
+                const response = await api.get(`/assign/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
+                const { changes, latestVersion } = response.data
+                // console.log("ResponseRelation Changes: ", changes)
+                // console.log("Terminou PULL ##########")
+                return { changes, timestamp: latestVersion }
+            },
+            pushChanges: async ({ changes }) => {
+                const studentTeachers = changes["student_teachers"]
+                await api.post('/assign/sync', studentTeachers)
+            },
+        })
+
+        setIsLoading(false)
+    }
     async function offlineSynchronize() {
         setIsLoading(true)
         await synchronize({
             database,
             pullChanges: async ({ lastPulledAt }) => {
-                if (activyItems === "students") {
-                    const response = await api
-                        .get(`/students/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
-
-                    const { changes, latestVersion } = response.data
-
-                    return { changes, timestamp: latestVersion }
-
-                } else {
-                    const response = await api
-                        .get(`/teachers/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
-                    const { changes, latestVersion } = response.data
-
-                    return { changes, timestamp: latestVersion }
-                }
+                console.log({lastPulledAt, date: new Date(Number(lastPulledAt))})
+                const response = await api.get(`/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
+                const { changes, latestVersion } = response.data
+                console.log({latestVersion, date: new Date(latestVersion)})
+                return { changes, timestamp: latestVersion }
+                // setPulledVersion(lastPulledAt)
+                // if (activyItems === "students") {
+                    // const response = await api
+                    //     .get(`/students/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
 
 
+                    // const { changes, latestVersion } = response.data
+                    // setPulledVersion(latestVersion)
+                    // return { changes, timestamp: latestVersion }
+
+                // } else {
+                //     const response = await api
+                //         .get(`/teachers/sync/pull?lastPulledVersion=${lastPulledAt || 0}`)
+                //     const { changes, latestVersion } = response.data
+
+                //     return { changes, timestamp: latestVersion }
+                // }
             },
-            pushChanges: async ({ changes }) => {
+            pushChanges: async ({ changes, lastPulledAt }) => {
                 const students = changes.students
                 const teachers = changes.teachers
-                console.log(changes)
-                // if (activyItems === "students") {
-                //     try {
-                //         await api.post('/students/sync', students)
-                //     } catch (error) {
-                //         console.log(error)
-                //     }
-                // } else {
-                //     try {
-                //         console.log(teachers)
-                //         await api.post('/teachers/sync', teachers)
-                //     } catch (error) {
-                //         console.log(error)
-                //     }
-                // }
+                const studentTeachers = changes["student_teachers"]
+                console.log(studentTeachers)
+                if (activyItems === "students") {
+                    try {
+                        // await api.post('/students/sync', students)
+                        await api.post(`/students/sync?lastPulledVersion=${lastPulledAt || 0}`, students)
+                        // .finally(async () => {
+                        //     console.log("Chamand a função de sincronizar relações")
+                        //     await synchronizeRelation()
+                        //     // console.log("Terminou a função de sincronizar relação")
+                        // })
+                    } catch (error) {
+                        console.log(error)
+                    }
+                } else {
+                    try {
+                        // console.log(teachers)
+                        await api.post('/teachers/sync', teachers)
+                    } catch (error) {
+                        console.log(error)
+                    }
+                }
 
+                try {
+                    // await api.post('/assign/sync', studentTeachers)
+                    await api.post(`/assign/sync?lastPulledVersion=${lastPulledAt || 0}`, studentTeachers)
+
+                } catch (error) {
+                    console.log(error)
+                }
+                
             }
-        }).finally(() => {
-            setIsLoading(false)
-            fetchData()
         })
+        // console.log("Chamand a função de sincronizar relações")
+
+        // await synchronizeRelation()
+        // console.log("Terminou a função de sincronizar relação")
+
+        setIsLoading(false)
+        fetchData()
+
 
     }
 
@@ -137,11 +182,9 @@ export function Home() {
             const studentsResponse = await studentsCollection.query().fetch()
 
             setStudents(studentsResponse)
-
         } catch (error) {
             console.log(error)
         } finally {
-
             setIsLoading(false)
 
         }
@@ -157,19 +200,24 @@ export function Home() {
             console.log(error)
         } finally {
             setIsLoading(false)
-
         }
     }
+
+    // useEffect(() => {
+    //     if (students.length > 0) {
+    //         offlineSynchronize()
+    //     }
+    // }, [students.length])
 
     useEffect(() => {
         fetchData()
     }, [activyItems])
 
-    useEffect(() => {
-        if (netInfo.isConnected === true) {
-            offlineSynchronize();
-        }
-    }, [netInfo.isConnected])
+    // useEffect(() => {
+    //     if (netInfo.isConnected === true) {
+    //         offlineSynchronize();
+    //     }
+    // }, [netInfo.isConnected])
 
     return (
         <VStack flex={1} bg="gray.800" paddingX={8} paddingTop={getStatusBarHeight() + 16}>
@@ -222,57 +270,51 @@ export function Home() {
             {
                 isLoading ? (
                     <Load />
+                ) : (
+                    <>
+                        <Heading
+                            color="white"
+                            alignSelf="center"
+                            fontSize="3xl"
+                            mb={8}
+                        >
+                            {activyItems === "students" ? "Estudantes" : "Professores"}
+                        </Heading>
+                        {
+                            activyItems === "students"
+                                ? (
+                                    <FlatList
+                                        data={students}
+                                        keyExtractor={item => item.id}
+                                        showsVerticalScrollIndicator={false}
+                                        contentContainerStyle={{ paddingBottom: 10 }}
+                                        renderItem={({ item }) => (
+                                            <Student
+                                                student={item}
+                                                onEdit={() => { }}
+                                                onRemove={() => handleRemoveStudent(item)}
+                                            />
+                                        )}
+                                    />
+                                )
+                                : (
+                                    <FlatList
+                                        data={teachers}
+                                        keyExtractor={item => item.id}
+                                        showsVerticalScrollIndicator={false}
+                                        renderItem={({ item }) => (
+                                            <Teacher
+                                                teacher={item}
+                                                onEdit={() => { }}
+                                                onRemove={() => handleRemoveTeacher(item)}
+                                            />
+                                        )}
+                                    />
+                                )
+                        }
+                    </>
                 )
-                    : activyItems === 'students'
-                        ? (
-                            <>
-                                <Heading
-                                    color="white"
-                                    alignSelf="center"
-                                    fontSize="3xl"
-                                    mb={8}
-                                >
-                                    Estudantes
-                                </Heading>
-                                <FlatList
-                                    data={students}
-                                    keyExtractor={item => item.id}
-                                    showsVerticalScrollIndicator={false}
-                                    contentContainerStyle={{ paddingBottom: 10 }}
-                                    renderItem={({ item }) => (
-                                        <Student
-                                            student={item}
-                                            onEdit={() => { }}
-                                            onRemove={() => handleRemoveStudent(item)}
-                                        />
-                                    )}
-                                />
-                            </>
-                        )
-                        : (
-                            <>
-                                <Heading
-                                    color="white"
-                                    alignSelf="center"
-                                    fontSize="3xl"
-                                    mb={8}
-                                >
-                                    Professores
-                                </Heading>
-                                <FlatList
-                                    data={teachers}
-                                    keyExtractor={item => item.id}
-                                    showsVerticalScrollIndicator={false}
-                                    renderItem={({ item }) => (
-                                        <Teacher
-                                            teacher={item}
-                                            onEdit={() => { }}
-                                            onRemove={() => handleRemoveTeacher(item)}
-                                        />
-                                    )}
-                                />
-                            </>
-                        )
+
             }
 
             <View position="absolute" left={4} bottom={8}>

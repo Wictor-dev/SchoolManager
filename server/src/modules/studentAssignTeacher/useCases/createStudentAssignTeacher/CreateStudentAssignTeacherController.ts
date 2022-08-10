@@ -6,10 +6,18 @@ export class CreateStudentAssignTeacherController {
     const { id } = req.params;
     const { teacherId } = req.body;
 
-    const createStudentAssignTeacherUseCase = new CreateStudentAssignTeacherUseCase();
+    const createStudentAssignTeacherUseCase =
+      new CreateStudentAssignTeacherUseCase();
 
-    const result = await createStudentAssignTeacherUseCase.execute({ id, teacherId });
+    const result = await createStudentAssignTeacherUseCase.execute({
+      id,
+      teacherId,
+    });
 
-    return res.status(200).json(result)
+    if (Object.keys(result).length > 0) {
+      return res.status(201).json(result);
+    } else {
+      return res.status(500).json("Error! This relation can't be created!");
+    }
   }
 }

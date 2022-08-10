@@ -4,12 +4,20 @@ import { SyncCreateTeacherUseCase } from "./SynCreateTeacherUseCase"
 
 export class SyncCreateTeacherController {
     async handle(req: Request, res: Response) {
-        const { id, name, age, payment } = req.body.created[0]
+        if (req.body.created.length > 0){
+            const { id, name, age, payment } = req.body.created[0]
 
-        const createTeacherUseCase = new SyncCreateTeacherUseCase()
-
-        const result = await createTeacherUseCase.execute({id, name, age, payment})
-
-        return res.status(201).json(result)
+            const createTeacherUseCase = new SyncCreateTeacherUseCase()
+            
+            try {
+                const result = await createTeacherUseCase.execute({id, name, age, payment})
+                return res.status(201).json(result)
+            } catch (error: any){
+                return res.status(error.statusCode ? error.statusCode : 400).json(error.message)
+            }
+        } else {
+            return res.status(201).json("The data informed is empty!")
+        }
+        
     }
 }

@@ -9,12 +9,6 @@ interface Data {
 
 export class CreateStudentAssignTeacherUseCase {
     async execute({id, teacherId }: Data) {
-        const teacher = await prisma.teacher.findUniqueOrThrow({
-            where: {
-                id: teacherId
-            }
-        })
-
         const student = await prisma.student.update({
             where: {
                 id
